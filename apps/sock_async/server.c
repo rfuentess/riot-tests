@@ -78,7 +78,7 @@ static void _asyn_handler(event_t *arg)
         sock_udp_ep_t remote;
         ssize_t res;
 
-        while ((res = sock_udp_recv(&udp_socket, pckt_rcvd, sizeof(pckt_rcvd),
+        while ((res = sock_udp_recv(event->sock, pckt_rcvd, sizeof(pckt_rcvd),
                                     0, &remote)) >= 0) {
             printf("(server) Data received -- ");
             ssize_t i;
@@ -88,7 +88,7 @@ static void _asyn_handler(event_t *arg)
             printf(" ---\n");
 
             /* Send back an ACK */
-            sock_udp_send(&udp_socket, "ACK", sizeof("ACK"), &remote);
+            sock_udp_send(event->sock, "ACK", sizeof("ACK"), &remote);
         }
     }
 }

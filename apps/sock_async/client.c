@@ -68,8 +68,6 @@
 static kernel_pid_t _client_pid = KERNEL_PID_UNDEF;
 char _client_stack[THREAD_STACKSIZE_MAIN + THREAD_EXTRA_STACKSIZE_PRINTF];
 
-static event_queue_t sock_event_queue;
-static sock_udp_t udp_sock;
 static uint8_t pckt_rcvd[DTLS_MAX_BUF];
 static void _asyn_recv(event_t *event);
 static void _kill_thread(event_t *event);
@@ -85,7 +83,7 @@ typedef struct {
     unsigned int *delay;
 } client_args_t;
 
-/**
+/*
  * To be used to determine if timeout for the server happened
  */
 static void _kill_thread(event_t *event){
@@ -111,10 +109,10 @@ static void _asyn_recv(event_t *arg)
 
     /* TODO: Generate our own TLS_APP_DATA_RECV */
     if (event->type & SOCK_EVENT_RECV) {
-        sock_udp_ep_t remote;
+        sock_udp_ep_t remote = { .family = AF_INET6 };
         ssize_t res;
 
-          while (( res = sock_udp_recv(&udp_sock, pckt_rcvd, sizeof(pckt_rcvd),
+          while (( res = sock_udp_recv(event->sock, pckt_rcvd, sizeof(pckt_rcvd),
                             0, &remote)) >= 0) {
           if (res >= 0) {
             printf("(client) ACK received -- ");
@@ -128,20 +126,17 @@ static void _asyn_recv(event_t *arg)
             _asyn_recv_watchdog++;
 
             /* NOTE: enable for sending packets forever */
-            /* sock_udp_send(&udp_sock, "PING", 5, &remote ); */
+            /* sock_udp_send(event->sock, "PING", 5, &remote ); */
 
           } else {
             /* TODO */
           }
-
-
         } /* while */
-
     }
 }
 
 
-/**
+/*
  * Llaunch two events and send the first sock message.
  *
  * One event will be for determine if an timeout happened.
@@ -154,6 +149,10 @@ void *_client_wrapper(void *arg){
     event_t *event;
     client_args_t * _usr_args  = (client_args_t *) arg;
     uint32_t  delay = (uint32_t ) *_usr_args->delay ;
+
+    /* BUG Must be static otherwise failed assertation (event.c#26) */
+    static sock_udp_t udp_sock;
+    event_queue_t sock_event_queue;
 
     sock_udp_ep_t remote = SOCK_IPV6_EP_ANY;
     sock_udp_ep_t local = SOCK_IPV6_EP_ANY;
@@ -221,7 +220,7 @@ void *_client_wrapper(void *arg){
     return (void *) NULL;
 }
 
-/**
+/*
  *  This can be seen as the equivalent of _start_server as will
  *  launch a new thread for using sock (UDP or SECURE)-
  *  However, this new thread will terminate by itself.
@@ -276,7 +275,7 @@ static void _start_asyn_thread(char *addr_str, char *data,
 }
 
 #else /* SOCK_HAS_ASYNC */
-/**
+/*
  * This is the "client" part for a synchronous client.
  * Will be called each time a message is transmitted.
  */
