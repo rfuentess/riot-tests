@@ -8,6 +8,7 @@ RIOT_BETA="betas"
 
 USR1_RIOT="https://github.com/rfuentess/riot.git"
 USR1_VER1="alpha/sock/secure"
+USR1_VER2="module/tlsman"
 
 USR2_RIOT="https://github.com/miri64/riot.git"
 USR2_VER1="gnrc_sock/feat/async"
@@ -46,6 +47,7 @@ generate(){
     # Betas repositories
     mkdir -p betas
     git clone "${USR1_RIOT}" -b "${USR1_VER1}" "${RIOT_BETA}"/async
+    git clone "${USR1_RIOT}" -b "${USR1_VER2}" "${RIOT_BETA}"/tlsman
 }
 
     cleanup ""
