@@ -17,7 +17,7 @@
 
 static void _resp_handler(uint8_t *data, size_t data_size, void *sock);
 
-static tlsman_session_t dtls_session;
+extern tlsman_driver_t tlsman_session;
 
 static void _resp_handler(uint8_t *data, size_t data_size, void *sock)
 {
@@ -32,7 +32,8 @@ static void _resp_handler(uint8_t *data, size_t data_size, void *sock)
 
     /* TODO FROM ... */
     /* NOTE: Remote is already in dtls_session */
-    tlsman_send_data_app(&dtls_session, "Pong", sizeof("Pong"));
+    tlsman_session.tlsman_send_data_app(&tlsman_session.session,
+                                         "Pong", sizeof("Pong"));
 }
 
 void _server_wrapper(void *arg) {
@@ -56,11 +57,12 @@ void _server_wrapper(void *arg) {
         return;
     }
 
-    ssize_t res = tlsman_init_context((tlsman_ep_t *) &local,
-                                     (tlsman_ep_t *) &remote,
-                                    &dtls_session, &udp_sock,
-                                    _resp_handler, tlsman_flags);
+    tlsman_session.session.local = &local;
+    tlsman_session.session.remote = &remote;
+    tlsman_session.session.sock = &udp_sock;
 
+    ssize_t res = tlsman_session.tlsman_init_context(&tlsman_session.session,
+                                                  _resp_handler, tlsman_flags);
     if (res != 0) {
         puts("ERROR: Unable to init tlsman context!");
         return;
@@ -80,13 +82,15 @@ void _server_wrapper(void *arg) {
     }
 #endif
 
-    while(tlsman_listening(&dtls_session, tlsman_flags,
-                            pckt_rcvd, DTLS_MAX_BUF)) {
+    while(tlsman_session.tlsman_listening(&tlsman_session.session,
+                                 tlsman_flags, pckt_rcvd, DTLS_MAX_BUF)) {
 
         (void) pckt_size; /* FIXME */
         xtimer_usleep(500);
     }
 
+    tlsman_session.tlsman_release_resources(&tlsman_session.session);
+    sock_udp_close(&udp_sock);
     return;
 }
 

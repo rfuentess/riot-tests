@@ -17,8 +17,10 @@
 #define MAIN_QUEUE_SIZE     (8)
 static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
 
+tlsman_driver_t tlsman_session;
+
 extern int client_cmd(int argc, char **argv);
-int server_cmd(int argc, char **argv);
+extern int server_cmd(int argc, char **argv);
 
 static const shell_command_t shell_commands[] = {
     { "client", "Start the testing clientt", client_cmd},
@@ -36,7 +38,9 @@ int main(void)
 
     /* The Cipher(s) the application must use (Hardcoded) */
     int chipers[] = SECURE_CIPHER_LIST;
-    ssize_t res = tlsman_load_stack(chipers, sizeof(chipers), TLSMAN_FLAG_STACK_DTLS);
+
+    ssize_t res = tlsman_load_stack(&tlsman_session, chipers, sizeof(chipers),
+                                    TLSMAN_FLAG_STACK_DTLS);
 
     switch (res) {
         case 0:
