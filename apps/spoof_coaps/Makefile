@@ -5,7 +5,7 @@ APPLICATION = dtls_echo
 BOARD ?= native
 
 # This has to be the absolute path to the RIOT base directory:
-RIOTBASE ?= $(CURDIR)/../../../betas/tlsman
+RIOTBASE ?= $(CURDIR)/../../betas/tlsman
 
 # TinyDTLS only has support for 32-bit architectures ATM
 BOARD_BLACKLIST := arduino-duemilanove arduino-mega2560 arduino-uno chronos \
@@ -39,9 +39,6 @@ USEMODULE += ps
 
 USEPKG += tinydtls
 
-# The PSK and RPK keys, and parameters, are in this header
-# INCLUDES += -I$(APPDIR)/keys
-
 # UDP Port to use (20220 is default for DTLS).
 DTLS_PORT ?= 5684
 CFLAGS += -DDTLS_DEFAULT_PORT=$(DTLS_PORT)
@@ -63,7 +60,8 @@ TINYDTLS_LOG ?= 0
 # dtls-client.c will generate a "CoAP get /riot/value" message instead of
 # sending the user input (ASCII).
 # dtls-server.c will display hexadecimal characters instead of ASCII.
-CFLAGS += -DCOAP_MSG_SPOOF
+COAP_MSG ?= 1
+CFLAGS += -DCOAP_MSG_SPOOF=$(COAP_MSG)
 
 # FIXME: This is a temporary patch
 # TinyDTLS <= 0.8.6 requires around 426 bytes in RAM.

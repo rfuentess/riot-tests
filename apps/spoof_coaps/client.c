@@ -393,23 +393,30 @@ static void client_send(char *addr_str, char *data,
         return;
     }
 
-#ifndef COAP_MSG_SPOOF
-    char *client_payload;
-    if (strlen(data) > DTLS_MAX_BUF) {
-        puts("ERROR: Exceeded max size of DTLS buffer.");
-        return;
-    }
-    client_payload = data;
-    app_data_buf = strlen(client_payload);
-#else /* COAP_MSG_SPOOF */
+#if (COAP_MSG_SPOOF == 1)
     (void) data;
     /* CoAP Message: NON, MID:59394, GET, TKN:0d 9f, /riot/value */
+    puts("CoAP Message: NON, MID:59394, GET, TKN:0d 9f, /riot/value");
     unsigned char client_payload[] = {
         0x52, 0x01, 0xe8, 0x02, 0x0d, 0x9f, 0xb4, 0x72,
         0x69, 0x6f, 0x74, 0x05, 0x76, 0x61, 0x6c, 0x75,
         0x65
     };
     app_data_buf = sizeof(client_payload);
+
+#elif (COAP_MSG_SPOOF == 2)
+
+    (void) data;
+    puts("CoAP Message: NON, MID:26379, GET, TKN:e6 52, /riot/board");
+
+    unsigned char client_payload[] = {
+      0x52, 0x01, 0x67, 0x0b, 0xe6, 0x52, 0xb4, 0x72,
+      0x69, 0x6f, 0x74, 0x05, 0x62, 0x6f, 0x61, 0x72,
+      0x64
+    };
+    app_data_buf = sizeof(client_payload);
+
+
 #endif /* COAP_MSG_SPOOF */
 
     /* The sock must be opened with the remote already linked to it */
